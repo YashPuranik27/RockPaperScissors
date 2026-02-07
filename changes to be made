@@ -1,8 +1,4 @@
 # Python 2.7 to Python 3.6+ Compatibility Changes
-## idl_transpiler.py - Complete Line-by-Line Documentation
-
-### Overview
-This document contains **EVERY SINGLE CHANGE** made to convert idl_transpiler.py from Python 2.7 to Python 3.6+. Each change shows the exact original line and the modified line.
 
 **Total Changes:** 65+ individual lines modified
 
