@@ -1,0 +1,1851 @@
+# Python 2.7 to Python 3.6+ Compatibility Changes
+---
+
+## Quick Reference Table
+
+| Line(s) | Change Type | Description |
+|---------|-------------|-------------|
+| 18 | Import removal | Removed `from __future__ import print_function` |
+| 40, 44 | None comparison | Changed to `is not None` in `print_output()` |
+| 60, 75 | None comparison | Changed to `is None` in file functions |
+| 100, 104 | Semicolon removal | Removed from `loadSpecialMessages()` |
+| 132, 136 | Semicolon removal | Removed from `loadDatapumpBits()` |
+| 153 | Semicolon removal | Removed from `include_guard()` return |
+| 460 | Regex raw string | Changed to `r"\.[iI][dD][lL]"` |
+| 473 | Regex raw string | Changed to `r"\.[iI][dD][lL]"` |
+| 608, 626, 633, 641 | None comparison | Changed to `is None` in evaluation |
+| 634 | Bug fix | Fixed regex pattern `(lL][uU])` → `([lL][uU])` |
+| 650, 653, 669, 698 | None comparison | Changed to `is None` in `evaluate()` |
+| 698 | Semicolon removal | Removed from return statement |
+| 704, 711, 715, 723, 727 | None comparison | Changed to `is not None` in `evaluate_string()` |
+| 718 | Regex raw string | Changed to `r"sizeof\([^)]+\)"` |
+| 752 | Type check | Changed to `isinstance(current_member_size, str)` |
+| 850, 854 | None comparison | Changed to `is None` in statement parsing |
+| 928 | Type check | Changed to `isinstance(current_member_size, str)` |
+| 939, 943 | None comparison | Changed to `is None` in statement parsing |
+| 1007 | None comparison | Changed to `is not None` in enum parsing |
+| 1132 | None comparison | Changed to `is not None` in struct parsing |
+| 1147, 1163 | None comparison | Changed to `is None` in array parsing |
+| 1225 | None comparison | Changed to `is None` in expression parsing |
+| 1290 | None comparison | Changed to `is not None` in error handling |
+| 1404 | None comparison | Changed to `is None` in dimension counting |
+| 1417 | Regex raw string | Changed to `r"\.[iI][dD][lL]"` |
+| 1442 | Regex raw string | Changed to `r"\.[iI][dD][lL]$"` |
+| 1452 | Regex raw string | Changed to `r"[\\\/]$"` |
+| 1453 | Bug fix | Fixed typo `BasicType` → `BasicTypes` |
+| 1478-1489 | Semicolon removal | Removed from all 12 `parser_create_basic_type()` calls |
+| 1490 | Regex raw string | Changed to `r"\.[iI][dD][lL]"` |
+| 1548 | None comparison | Changed to `is None` in file processing |
+| 1619, 1623, 1627, 1631 | None comparison | Changed to `is None` in main section |
+
+**Total Changes:** 65+ lines modified across 8 different categories
+
+---
+
+## Changes Made:
+
+### 1. **Removed `from __future__ import print_function` (Line 18)**
+   - **Original:** `from __future__ import print_function`
+   - **Changed to:** Removed completely
+   - **Reason:** This import was used to make Python 2.7 compatible with Python 3's print function. Since we're targeting Python 3.6+, this is no longer needed. The file already has `#!/usr/bin/env python3` at the top.
+
+---
+
+### 2. **Removed Semicolons After Statements (Multiple Locations)**
+   **All affected lines:**
+   - Line 100: `idl_fd.close();` in `loadSpecialMessages()`
+   - Line 104: `idl_fd.close();` in `loadSpecialMessages()` (exception handler)
+   - Line 132: `idl_fd.close();` in `loadDatapumpBits()`
+   - Line 136: `idl_fd.close();` in `loadDatapumpBits()` (exception handler)
+   - Line 153: `return "__" + name.replace( ".", "_" ) + "__";` in `include_guard()`
+   - Line 698: `return value;` in `evaluate()`
+   - Lines 1478-1489: All 12 `parser_create_basic_type()` calls in `parser_init()`:
+     - Line 1478: `parser_create_basic_type( "float", "float", 4, 4 );`
+     - Line 1479: `parser_create_basic_type( "double", "double", 8, 8 );`
+     - Line 1480: `parser_create_basic_type( "long double", "double", 8, 8 );`
+     - Line 1481: `parser_create_basic_type( "short", "int16_t", 2, 2 );`
+     - Line 1482: `parser_create_basic_type( "unsigned short", "uint16_t", 2, 2 );`
+     - Line 1483: `parser_create_basic_type( "long", "int32_t", 4, 4 );`
+     - Line 1484: `parser_create_basic_type( "unsigned long", "uint32_t", 4, 4 );`
+     - Line 1485: `parser_create_basic_type( "long long", "int64_t", 8, 8 );`
+     - Line 1486: `parser_create_basic_type( "unsigned long long", "uint64_t", 8, 8 );`
+     - Line 1487: `parser_create_basic_type( "char", "uint8_t", 1, 1 );`
+     - Line 1488: `parser_create_basic_type( "boolean", "uint8_t", 1, 1 );`
+     - Line 1489: `parser_create_basic_type( "octet", "uint8_t", 1, 1 );`
+
+   - **Original:** 
+     ```python
+     idl_fd.close();
+     return "__" + name.replace( ".", "_" ) + "__";
+     parser_create_basic_type( "float", "float", 4, 4 );
+     ```
+   - **Changed to:** 
+     ```python
+     idl_fd.close()
+     return "__" + name.replace( ".", "_" ) + "__"
+     parser_create_basic_type( "float", "float", 4, 4 )
+     ```
+   - **Reason:** While semicolons work in both Python 2 and 3, they're not Pythonic and should be removed for proper Python style.
+   - **Total semicolons removed:** 18
+
+---
+
+### 3. **Changed `!= None` and `== None` to `is not None` and `is None` (Multiple locations)**
+   **Locations affected:**
+   - Lines 40, 44 (in `print_output` function)
+   - Lines 60, 75 (in `write_output_to_file` and `remove_output` functions)
+   - Lines 608, 626, 633, 641, 650, 653, 669, 698, 704, 711, 715, 723, 727 (in evaluation functions)
+   - Lines 850, 854, 939, 943, 1007, 1132, 1147, 1163, 1225, 1290, 1404, 1548 (throughout parser)
+   - Lines 1619, 1623, 1627, 1631 (in main section)
+
+   - **Original:** 
+     ```python
+     if filename != None:
+     if value == None:
+     ```
+   - **Changed to:** 
+     ```python
+     if filename is not None:
+     if value is None:
+     ```
+   - **Reason:** In Python 3, it's best practice to use `is` and `is not` when comparing to `None`. This is because `None` is a singleton object, and identity checks (`is`) are more appropriate than equality checks (`==`). Using `==` could cause issues with objects that override the `__eq__` method.
+
+---
+
+### 4. **Fixed Regex Pattern Bug (Line 634)**
+   - **Original:** 
+     ```python
+     t1 = re.sub( '(([uU][lL])|(lL][uU])|[lL]|[uU])$', '', text )
+     ```
+   - **Changed to:** 
+     ```python
+     t1 = re.sub( '(([uU][lL])|([lL][uU])|[lL]|[uU])$', '', text )
+     ```
+   - **Reason:** Fixed typo in regex pattern where `(lL][uU])` was missing an opening bracket. Should be `([lL][uU])`. This isn't strictly a Python 2 vs 3 issue, but it was a bug that needed fixing.
+
+---
+
+### 5. **Removed Semicolon from Return Statement (Line 698)**
+   - **Note:** This was already covered in Section 2 above, but mentioning here for completeness as it's in a different function (`evaluate()`)
+
+---
+
+### 6. **Changed Type Checking Method (Lines 752, 928)**
+   - **Original:** 
+     ```python
+     if type( current_member_size ) is str:
+     ```
+   - **Changed to:** 
+     ```python
+     if isinstance( current_member_size, str ):
+     ```
+   - **Reason:** While `type(x) is str` works in both Python 2 and 3, `isinstance()` is the preferred and more robust way to check types in Python 3. It also handles inheritance properly.
+
+---
+
+### 7. **Fixed Typo in BasicTypes Reference (Line 1453)**
+   - **Original:** 
+     ```python
+     return TypeInfo( BasicType[ 'boolean' ].bytes, BasicTypes[ 'boolean' ].alignment )
+     ```
+   - **Changed to:** 
+     ```python
+     return TypeInfo( BasicTypes[ 'boolean' ].bytes, BasicTypes[ 'boolean' ].alignment )
+     ```
+   - **Reason:** Fixed typo where `BasicType` (singular) should be `BasicTypes` (plural). This would have caused a runtime error.
+
+---
+
+### 8. **Fixed Regex String Escape Sequences - Use Raw Strings (7 locations)**
+   **Locations affected:**
+   - Line 460: `re.sub( "\.[iI][dD][lL]", ".h", p[2])`
+   - Line 473: `re.sub( "\.[iI][dD][lL]", ".h", p[2])`
+   - Line 718: `re.search( "sizeof\([^)]+\)", tempText )`
+   - Line 1417: `re.sub( "\.[iI][dD][lL]", ".h", os.path.basename( filename ) )`
+   - Line 1442: `re.search( "\.[iI][dD][lL]$", filename )`
+   - Line 1452: `re.sub( "[\\\/]$", "", i )`
+   - Line 1490: `re.sub( "\.[iI][dD][lL]", "", path )`
+
+   - **Original:** 
+     ```python
+     re.sub( "\.[iI][dD][lL]", ".h", p[2])
+     re.search( "sizeof\([^)]+\)", tempText )
+     ```
+   - **Changed to:** 
+     ```python
+     re.sub( r"\.[iI][dD][lL]", ".h", p[2])
+     re.search( r"sizeof\([^)]+\)", tempText )
+     ```
+   - **Reason:** Python 3 is stricter about escape sequences in strings. Backslashes like `\.` and `\(` are not valid escape sequences, so Python 3 generates SyntaxWarning messages (and will become errors in future versions). Using raw strings (prefix `r`) tells Python to treat backslashes literally, which is what we want for regex patterns. Python 2 was more lenient and didn't complain about these, but it's a best practice to use raw strings for all regex patterns.
+
+---
+
+## Testing Recommendations:
+
+After making these changes, you should test the script with:
+
+1. **Simple IDL files** to ensure basic functionality works
+2. **Complex IDL files** with includes, macros, and nested structures
+3. **Edge cases** like empty files, files with special characters
+4. **Error conditions** to ensure error handling still works correctly
+
+## Compatibility Notes:
+
+- The modified script is now compatible with **Python 3.6+**
+- It will **NOT** work with Python 2.7 anymore (due to removal of `from __future__ import print_function` and other changes)
+- All changes maintain the same functionality while following Python 3 best practices
+
+## Additional Python 3 Best Practices Applied:
+
+1. **Identity comparisons** for `None` using `is`/`is not`
+2. **Type checking** using `isinstance()` instead of `type() is`
+3. **Removed unnecessary semicolons** throughout the code
+4. **Fixed bugs** that were present in the original code
+
+---
+
+## Summary Statistics:
+
+- **Total lines changed:** Approximately 65+ lines
+- **Major categories of changes:**
+  - Removed `from __future__ import` statement: 1 instance (line 18)
+  - Changed `== None`/`!= None` to `is None`/`is not None`: 30+ instances (all locations documented)
+  - Removed semicolons: **18 instances** (all locations documented):
+    - 4 in file I/O functions (lines 100, 104, 132, 136)
+    - 2 in utility/evaluation functions (lines 153, 698)
+    - 12 in parser_init() function (lines 1478-1489)
+  - Changed `type() is` to `isinstance()`: 2 instances (lines 752, 928)
+  - Fixed regex patterns to use raw strings (r"..."): 7 instances (lines 460, 473, 718, 1417, 1442, 1452, 1490)
+  - Fixed bugs: 2 instances
+    - Line 634: Regex pattern typo `(lL][uU])` → `([lL][uU])`
+    - Line 1453: Variable name typo `BasicType` → `BasicTypes`
+
+All changes preserve the original functionality while making the code compatible with Python 3.6+ and following modern Python best practices.
+
+---
+
+## Detailed Breakdown by Category
+
+### Category 1: Import Statement (1 change)
+- **Line 18:** Removed `from __future__ import print_function`
+
+### Category 2: Semicolon Removal (18 changes)
+- **Lines 100, 104:** `loadSpecialMessages()` function
+- **Lines 132, 136:** `loadDatapumpBits()` function  
+- **Line 153:** `include_guard()` return statement
+- **Line 698:** `evaluate()` return statement
+- **Lines 1478-1489:** All 12 `parser_create_basic_type()` calls in `parser_init()`
+
+### Category 3: None Comparisons (30+ changes)
+- **Lines 40, 44:** `print_output()` function
+- **Lines 60, 75:** `write_output_to_file()` and `remove_output()` functions
+- **Lines 608, 626, 633, 641, 650, 653, 669, 698:** `is_number()` and `evaluate()` functions
+- **Lines 704, 711, 715, 723, 727:** `evaluate_string()` function
+- **Lines 850, 854, 939, 943:** Statement parsing functions
+- **Line 1007:** Enum body parsing
+- **Line 1132:** Struct body parsing
+- **Lines 1147, 1163:** Array parsing
+- **Line 1225:** Expression parsing
+- **Line 1290:** Error handling
+- **Line 1404:** Dimension counting
+- **Line 1548:** File processing
+- **Lines 1619, 1623, 1627, 1631:** Main argument parsing
+
+### Category 4: Type Checking (2 changes)
+- **Line 752:** `p_statement_3()` - `type() is` → `isinstance()`
+- **Line 928:** `p_statement_5()` - `type() is` → `isinstance()`
+
+### Category 5: Regex Raw Strings (7 changes)
+- **Line 460:** `p_control_line_3a()` - IDL to .h substitution
+- **Line 473:** `p_control_line_3b()` - IDL to .h substitution
+- **Line 718:** `evaluate_string()` - sizeof pattern matching
+- **Line 1417:** `input()` - include guard generation
+- **Line 1442:** `process_file()` - IDL file validation
+- **Line 1452:** `process_file()` - path cleanup
+- **Line 1490:** `process_file()` - base path generation
+
+### Category 6: Bug Fixes (2 changes)
+- **Line 634:** Fixed regex pattern from `(lL][uU])` to `([lL][uU])`
+- **Line 1453:** Fixed typo from `BasicType` to `BasicTypes`
+
+---
+
+## Verification Checklist
+
+After applying these changes, verify:
+- ✅ No `SyntaxWarning` messages when running with Python 3.6+
+- ✅ All regex patterns use raw strings (prefix `r`)
+- ✅ No semicolons at end of statements
+- ✅ All `None` comparisons use `is`/`is not`
+- ✅ Type checking uses `isinstance()`
+- ✅ Script produces identical output to Python 2.7 version
+
+
+
+--------------
+
+
+
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# The idl_transpiler tool is used to translate a limited subset of the Interface Definition Language (IDL) to C++ code.
+# The goal for this tool was to:
+#   (a) replace several existing tools with a single tool that met all the various needs of the using program(s).
+#   (b) translate IDL to C/C++.
+#   (c) validate input IDL to ensure it complies with the supported subset of IDL.
+#   (d) validate padding of structures to ensure that there is no "slack" space between fields.  I.e. all fields are
+#       properly aligned in memory based on the size and type of the field.
+#   (3) process a single IDL file and produce output for that single file only.  Any included IDL files will be read
+#       and used to provide definitions of types and constants.
+
+# Note that this tool depends upon ply-3.11 being installed in the same directory as this script.
+
+# various libraries that are used by this script.
+import sys
+import argparse
+import os
+import math
+import re
+import traceback
+
+# a few global variables and functions used for creating the output C/C++ files
+output_h = ""                       # the resulting header file to be produced
+output_cpp = ""                     # the resulting source file to be produced
+outputdir = None                    # optional location to place output files if not co-locating with source IDL file
+errorFound = False
+
+# print_output - add text to the header and source files to be produced.  update the filename and line number in the
+#   target files as needed
+def print_output( write_output_flag, new_str_h = "", new_str_cpp = "", filename = None, lineno = None ):
+    global output_h, output_cpp
+    if write_output_flag == True:
+        if new_str_h != "":
+            if (filename is not None) and (lineno is not None) and isinstance( filename, str ) and isinstance( lineno, int ):
+                output_h += "#line %d \"%s\"\n" % ( lineno, filename )
+            output_h += new_str_h + "\n"
+        if new_str_cpp != "":
+            if (filename is not None) and (lineno is not None) and isinstance( filename, str ) and isinstance( lineno, int ):
+                output_h += "#line %d \"%s\"\n" % ( lineno, filename )
+            output_cpp += new_str_cpp + "\n"
+
+# prepend_output - add text to the start (front) of the header and/or source files to be produced
+def prepend_output( write_output_flag, new_str_h, new_str_cpp = "" ):
+    global output_h, output_cpp
+    if write_output_flag == True:
+        if new_str_h != "":
+            output_h = new_str_h + "\n" + output_h
+        if new_str_cpp != "":
+            output_cpp = new_str_cpp + "\n" + output_cpp
+
+# write_output_to_file - write the header and source files to be produced to actual files, either co-locating them
+#   with the source IDL or to a specified output directory.
+def write_output_to_file( base_file_name ):
+    if outputdir is None:
+        outputpath = base_file_name
+    else:
+        outputpath = os.path.join( outputdir, os.path.basename( base_file_name ) )
+    f = open( outputpath + ".h", "w" )
+    f.write( output_h )
+    f.close()
+    f = open( outputpath + ".cpp", "w" )
+    f.write( "#include \"" + os.path.basename( base_file_name ) + ".h\"\n" )
+    f.write(  output_cpp )
+    f.close()
+
+# remove_output - removes any pre-existing output file (header and source) from the target directory (could be
+#   either the same directory as the source IDL or a user specified directory)
+def remove_output( base_file_name ):
+    if outputdir is None:
+        outputpath = base_file_name
+    else:
+        outputpath = os.path.join( outputdir, os.path.basename( base_file_name ) )
+    for ext in [ ".h", ".cpp" ]:
+        filename = outputpath + ext
+        if os.path.exists( filename ):
+            os.remove( filename )
+
+# global variable to hold "special" message names.  used to produce a flag indicating this message (structure)
+#   as "special" or not.  this allows the code using the generated C/C++ code to handle some messages differently
+#   than others based solely upon a using programs needs.
+SpecialMessageNames = {}
+SpecialMessageNamesFilePath = ""
+
+# loadSpecialMessages - read the special messages file and get the information we need.  the file is of the format:
+#       messagename_1 = 1
+#       messagename_2 = 0
+#       ...
+#       messagename_n = 1
+#   where messagename_x is the name of the message/struct that have its "specialness" defined and the 0 or 1
+#   indicates if the message is (1) or is not (0) special.
+def loadSpecialMessages():
+    global SpecialMessageNames, SpecialMessageNamesFilePath
+    try:
+        idl_fd = open( SpecialMessageNamesFilePath, 'r' )
+        for line in idl_fd.readlines():
+            namebuffer = line.split()
+            SpecialMessageNames[ namebuffer[ 0 ].strip() ] = namebuffer[ 2 ].strip()
+        idl_fd.close()
+    except Exception:
+        print( "Warning: Couldn't open special message names at %s!" % SpecialMessageNamesFilePath, file = sys.stderr )
+        return
+
+# getSpecialMessage - get the "special" status of the given message/struct.  if the message/struct is not found, assume
+#   it is not special.
+def getSpecialMessage( msgname ):
+    global SpecialMessageNames
+    if msgname in SpecialMessageNames:
+        return SpecialMessageNames[ msgname ]
+    return 0
+
+# a global variable to hold data pump bits which are used to determine if this message/struct should be data pumped or not.
+DatapumpBits = {}
+BitFilePath = ""
+
+# loadDatapumpBits - read the data pump bits file and get the information we need.  the file is of the format:
+#       messagename_1 = 0
+#       messagename_2 = 4
+#       ...
+#       messagename_n = 23
+#   where messagename_x is the name of the message/struct whose data pump bits are being defined and the number assiged is
+#   used to indicate which bit in the data pump mask is used to indicate that this message should or should not be
+#   data pumped.  see program specific data pump implementation for more details on how this value is used.
+def loadDatapumpBits():
+    global DatapumpBits, BitFilePath
+    try:
+        idl_fd = open( BitFilePath, 'r' )
+        for line in idl_fd.readlines():
+            namebuffer = line.split()
+            DatapumpBits[ namebuffer[ 0 ].strip() ] = namebuffer[ 2 ].strip()
+        idl_fd.close()
+
+    except Exception:
+        print( "Warning: Couldn't open datapump bit list at %s!" % BitFilePath, file = sys.stderr )
+        return
+
+# getDataPumpBits - get the data pump bit assigned to this message/struct.  if the message/struct name is not found,
+#   assume a value of 0 which is used to indicate that the message/struct is not to be data pumped.
+def getDataPumpBits( msgname ):
+    global DatapumpBits
+    if msgname in DatapumpBits:
+        return DatapumpBits[ msgname ]
+    return 0
+
+# include_guard - convert a name, usually the file name with extention but no path, to a constant string for use as a
+#   C/C++ header file "include guard" to ensure a header file is only processed once by the compiler.
+def include_guard( name ):
+    return "__" + name.replace( ".", "_" ) + "__"
+
+# make_transpiler - make an instance of the idl_transpiler.  this includes the lexer and the parser as well as data specific to
+#   the file being processed.  since the IDL source can include other IDL source files via "#include" statements, we need to be
+#   able to instantiate a new transpiler for each file being processed.
+def make_transpiler():
+    # some imports needed by the transpiler, most noteably the ply.lex and ply.yacc libraries which must be co-located with this
+    # script.
+    from operator import truediv
+    from re import M, T
+    import re as re
+    import ply.lex as lex
+    import ply.yacc as yacc
+
+    s_path = ""                         # path to the file being transpiled.
+    s_searchpath = []                   # list of directories to search for the source IDL or an included source IDL file.
+    s_callstack = []                    # "call stack" of IDL files, used for error reporting to show the path taken to get to an included IDL file
+
+    # define the tokens that the lexer will recognize - this spans many statements
+    reserved = ( 'BOOLEAN', 'CHAR', 'CONST', 'DOUBLE', 'ENUM',
+    'FLOAT', 'LONG',
+    'OCTET', 'SHORT', 'STRUCT', 'TYPEDEF', 'UNSIGNED', 'SIZEOF'
+    )
+
+    # Identifiers and reserved words
+    reserved_map = {}
+    for r in reserved:
+        reserved_map[r.lower()] = r
+
+    tokens  = reserved + (
+        'HASH', 'DEFINE', 'INCLUDE', 'LINE', 'UNDEF', 'ERROR', 'PRAGMA',
+        'DEFINED', 'PPIF', 'IFDEF', 'IFNDEF', 'PPELIF', 'PPELSE', 'ENDIF',
+        'IDENTIFIER', 'ICONST', 'FCONST', 'HCONST', 'NEWLINE',
+
+        # Operators (+,-,*,/,%,|,&,~,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
+        'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
+        'OR', 'AND', 'NOT', 'XOR', 'LSHIFT', 'RSHIFT',
+        'LOR', 'LAND', 'LNOT',
+        'LT', 'LE', 'GT', 'GE', 'EQ', 'NE',
+
+        # Assignment
+        'EQUALS',
+
+        # Increment/decrement (++,--)
+        #'PLUSPLUS', 'MINUSMINUS',
+
+        # Conditional operator (?)
+        #'CONDOP',
+
+        # Delimeters ( ) [ ] { } , ; :
+        'LPAREN', 'RPAREN',
+        'LBRACKET', 'RBRACKET',
+        'LBRACE', 'RBRACE',
+        'COMMA', 'SEMI', 'COLON',
+
+        'PATH_SPEC_1', 'PATH_SPEC_2',
+        'END_OF_FILE',
+    )
+
+    # Declare the state - we have two states - initial and preprocessor (exclusive is not used at this time).  preprocessor is used for
+    # processing pre-processor statements such as #include, #define, #if, etc. initial (which is automatically defined by the ply lexer)
+    # is used to process the actual IDL source.
+    states = (
+        ('preprocessor','exclusive'),
+    )
+
+    t_ANY_ignore = ' \t'
+
+    # Comments
+
+    def t_ALL_comment(t):
+        r'/\*(.|[\n\r])*?\*/'
+        t.lexer.lineno += t.value.count('\n')
+        t.lexer.lineno += t.value.count('\r')
+        pass
+
+    def t_preprocessor_comment_cpp(t):
+        r'//.*[\n\r]*'
+        t.lexer.lineno += t.value.count('\n')
+        t.lexer.lineno += t.value.count('\r')
+        #print( "Entering Initial" )
+        t.lexer.begin( 'INITIAL' )
+        t.type = 'NEWLINE'
+        return t
+
+    def t_comment_cpp(t):
+        r'//.*[\n\r]*'
+        t.lexer.lineno += t.value.count('\n')
+        t.lexer.lineno += t.value.count('\r')
+        t.lexer.begin( 'INITIAL' )
+        t.type = 'NEWLINE'
+        pass
+
+    def t_ANY_HASH( t ):
+        r'^[ t]*[#]'
+        #print( "Entering Preprocessor" )
+        t.lexer.begin( 'preprocessor' )         # working on preprocessor language
+        t.type = 'HASH'
+        return t
+
+    def t_preprocessor_CONTINUATION( t ):
+        r'\\[\n\r]'
+        #print( "Continuation..." )
+        t.lexer.lineno += 1
+        pass
+
+    def t_preprocessor_NEWLINE( t ):
+        r'[\n\r]+'
+        t.lexer.lineno += t.value.count("\n")
+        t.lexer.lineno += t.value.count("\r")
+        #print( "Entering Initial" )
+        t.lexer.begin( 'INITIAL' )
+        t.type = 'NEWLINE'
+        return t
+
+    def t_preprocessor_DEFINED( t ):
+        r'defined'
+        t.type = 'DEFINED'
+        return t
+
+    def t_preprocessor_DEFINE( t ):
+        r'define'
+        t.type = 'DEFINE'
+        return t
+
+    def t_preprocessor_INCLUDE( t ):
+        r'include'
+        t.type = 'INCLUDE'
+        return t
+
+    def t_preprocessor_LINE( t ):
+        r'line'
+        t.type = 'LINE'
+        return t
+
+    def t_preprocessor_UNDEF( t ):
+        r'undef'
+        t.type = 'UNDEF'
+        return t
+
+    def t_preprocessor_ERROR( t ):
+        r'error'
+        t.type = 'ERROR'
+        return t
+
+    def t_preprocessor_PRAGMA( t ):
+        r'pragma'
+        t.type = 'PRAGMA'
+        return t
+
+    def t_preprocessor_IFDEF( t ):
+        r'ifdef'
+        t.type = 'IFDEF'
+        return t
+
+    def t_preprocessor_IFNDEF( t ):
+        r'ifndef'
+        t.type = 'IFNDEF'
+        return t
+
+    def t_preprocessor_PPIF( t ):
+        r'if'
+        t.type = 'PPIF'
+        return t
+
+    def t_preprocessor_PPELIF( t ):
+        r'elif'
+        t.type = 'PPELIF'
+        return t
+
+    def t_preprocessor_PPELSE( t ):
+        r'else'
+        t.type = 'PPELSE'
+        return t
+
+    def t_preprocessor_ENDIF( t ):
+        r'endif'
+        t.type = 'ENDIF'
+        return t
+
+    # Integer literal
+    t_ANY_ICONST = r'\d+(([uU][lL])|([lL][uU])|[lL]|[uU])?'
+
+    # Hexidecimal literal
+    t_ANY_HCONST = r'0[xX][0-9A-Fa-f]+(([uU][lL])|([lL][uU])|[lL]|[uU])?'
+
+    # Floating literal
+    t_FCONST = r'((\d+)(\.\d+)([eE](\+|-)?(\d+))? | (\d+)[eE](\+|-)?(\d+))([lL]|[fF])?'
+
+    def t_ANY_IDENTIFIER( t ):
+        r'[_a-zA-Z][_a-zA-Z0-9]*'
+        t.type = reserved_map.get( t.value, 'IDENTIFIER' )
+        return t
+
+    def t_preprocessor_PATH_SPEC1( t ):
+        r'"([a-zA-z]:)?([\\/]?[^\\/\n\r]+)+"'
+        t.type = 'PATH_SPEC_1'
+        t.value = t.value[ t.value.find( "\"" ) + 1 : t.value.rfind( "\"" ) ]
+        return t
+
+    def t_preprocessor_PATH_SPEC2( t ):
+        #r'((?:[A-Z]:|(?<![:/\\])[\\\/]|\~[\\\/]|(?:\.{1,2}[\\\/])+)[\w+\\\s_\-\(\)\/]*(?:\.\w+)*)'
+        r'<([a-zA-z]:)?([\\/]?[^\\/\n\r]+)+\>'
+        t.type = 'PATH_SPEC_2'
+        t.value = t.value[ t.value.find( "<" ) + 1 : t.value.rfind( ">" ) ]
+        return t
+
+    # Operators
+    t_ANY_PLUS = r'\+'
+    t_ANY_MINUS = r'-'
+    t_ANY_TIMES = r'\*'
+    t_ANY_DIVIDE = r'/'
+    t_ANY_MOD = r'%'
+    t_ANY_OR = r'\|'
+    t_ANY_AND = r'&'
+    t_ANY_NOT = r'~'
+    t_ANY_XOR = r'\^'
+    t_ANY_LSHIFT = r'<<'
+    t_ANY_RSHIFT = r'>>'
+    t_ANY_LOR = r'\|\|'
+    t_ANY_LAND = r'&&'
+    t_ANY_LNOT = r'!'
+    t_ANY_LT = r'<'
+    t_ANY_GT = r'>'
+    t_ANY_LE = r'<='
+    t_ANY_GE = r'>='
+    t_ANY_EQ = r'=='
+    t_ANY_NE = r'!='
+
+    # Assignment operators
+    t_ANY_EQUALS = r'='
+
+    # Increment/decrement
+    #t_ANY_PLUSPLUS = r'\+\+'
+    #t_ANY_MINUSMINUS = r'--'
+
+    # ?
+    #t_ANY_CONDOP = r'\?'
+
+    # Delimeters
+    t_ANY_LPAREN = r'\('
+    t_ANY_RPAREN = r'\)'
+    t_ANY_LBRACKET = r'\['
+    t_ANY_RBRACKET = r'\]'
+    t_ANY_LBRACE = r'\{'
+    t_ANY_RBRACE = r'\}'
+    t_ANY_COMMA = r','
+    #t_ANY_PERIOD = r'\.'
+    t_ANY_SEMI = r';'
+    t_ANY_COLON = r':'
+
+    # Newlines
+    def t_ANY_NEWLINE(t):
+        r'[\n\r]+'
+        t.lexer.lineno += t.value.count("\n")
+        t.lexer.lineno += t.value.count("\r")
+        pass
+
+    def t_ANY_error(t):
+        print( s_path + " : " + str( t.lineno ) + " : Illegal character %s" % repr( t.value[ 0 ] ), file = sys.stderr )
+        t.lexer.skip(1)
+
+    # EOF handling rule
+    def t_ANY_eof(t):
+        if t.lexer.current_state() == 'INITIAL':
+            t.type = 'END_OF_FILE'
+        else:
+            t.type = 'END_OF_FILE'
+            t.lexer.begin( 'INITIAL' )
+            return t
+        pass
+
+    # define the precedence of various operator to resolve shift/reduce errors in the generated lexer.
+    precedence =  [ ('left', 'MINUS', 'PLUS'),
+                    ('left', 'TIMES', 'DIVIDE', 'MOD'), ('right', 'UMINUS', 'NOT', 'LNOT' ),
+                    ('left', 'LSHIFT', 'RSHIFT', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE', 'AND', 'XOR', 'OR', 'LAND', 'LOR')]
+    
+    # define the parser, i.e. the syntax of the IDL subset we support
+    def p_translation_unit( p ):
+        '''translation_unit : translation_unit HASH control_line NEWLINE
+                            | translation_unit HASH control_line END_OF_FILE
+                            | translation_unit statement
+                            | HASH control_line NEWLINE
+                            | HASH control_line END_OF_FILE
+                            | statement
+                            | END_OF_FILE'''
+        p[0] = 0
+
+    def p_control_line_1a( p ):
+        '''control_line : DEFINE IDENTIFIER LPAREN identifier_list RPAREN token_string'''
+        parser_create_macro( p[ 2 ], p[ 4 ], p[ 6 ] )
+        print_output( p.lexer.s_write_output, "#define " + p[2] + "( " + p[4] + " )", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = p[ 2 ] + p[ 4 ] + p[ 6 ]
+
+    def p_control_line_1b( p ):
+        '''control_line : DEFINE IDENTIFIER token_string'''
+        parser_create_macro( p[ 2 ], None, p[ 3 ] )
+        print_output( p.lexer.s_write_output, "#define " + p[2] + " " + p[3], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = p[ 2 ] + p[ 3 ]
+
+    def p_control_line_1c( p ):
+        '''control_line : DEFINE IDENTIFIER'''
+        parser_create_macro( p[ 2 ], None, None )
+        print_output( p.lexer.s_write_output, "#define " + p[2], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = p[ 2 ]
+
+    def check_callstack( callstack, filename ):
+        return filename in callstack
+
+    def p_control_line_3a( p ):
+        '''control_line : INCLUDE PATH_SPEC_1'''
+        print_output( p.lexer.s_write_output, "#include \"" + re.sub( r"\.[iI][dD][lL]", ".h", p[2]) + "\"", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        if not p[ 2 ] in p.lexer.s_callstack:
+            r = process_file( p[ 2 ], p.lexer.s_searchpath, p.lexer.s_callstack, p.lexer.lineno )
+            Constants.update( r[ 1 ] )
+            BasicTypes.update( r[ 2 ] )
+            EnumerationTypes.update( r[ 3 ] )
+            UserDefinedTypes.update( r[ 4 ] )
+            Typedefs.update( r[ 5 ] )
+            MacroTypes.update( r[ 6 ] )
+        p[ 0 ] = p[ 2 ]
+
+    def p_control_line_3b( p ):
+        '''control_line : INCLUDE PATH_SPEC_2'''
+        print_output( p.lexer.s_write_output, "#include <" + re.sub( r"\.[iI][dD][lL]", ".h", p[2]) + ">", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        if not p[ 2 ] in p.lexer.s_callstack:
+            r = process_file( p[ 2 ], p.lexer.s_searchpath, p.lexer.s_callstack, p.lexer.lineno )
+            Constants.update( r[ 1 ] )
+            BasicTypes.update( r[ 2 ] )
+            EnumerationTypes.update( r[ 3 ] )
+            UserDefinedTypes.update( r[ 4 ] )
+            Typedefs.update( r[ 5 ] )
+            MacroTypes.update( r[ 6 ] )
+        p[ 0 ] = p[ 2 ]
+
+    def p_control_line_4( p ):
+        '''control_line : LINE ICONST'''
+        print_output( p.lexer.s_write_output, "#line " + p[2], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+
+    def p_control_line_4a( p ):
+        '''control_line : LINE HCONST'''
+        print_output( p.lexer.s_write_output, "#line " + p[2], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+
+    def p_control_line_5( p ):
+        '''control_line : UNDEF IDENTIFIER'''
+        print_output( p.lexer.s_write_output, "#undef " + p[2], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = p[ 2 ]
+
+    def p_control_line_6( p ):
+        '''control_line : ERROR token_string'''
+        print_output( p.lexer.s_write_output, "#error " + p[2], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = p[ 2 ]
+
+    def p_control_line_7( p ):
+        '''control_line : PRAGMA token_string'''
+        print_output( p.lexer.s_write_output, "#pragma " + p[2], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = p[ 2 ]
+
+    def p_control_line_8a( p ):
+        '''control_line : PPIF constant_expression'''
+        print_output( p.lexer.s_write_output, "#if " + p[ 2 ], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "#if " + p[ 2 ]
+
+    def p_control_line_8b( p ):
+        '''control_line : IFDEF IDENTIFIER'''
+        print_output( p.lexer.s_write_output, "#ifdef " + p[ 2 ], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "#ifdef " + p[ 2 ]
+
+    def p_control_line_8c( p ):
+        '''control_line : IFNDEF IDENTIFIER'''
+        print_output( p.lexer.s_write_output, "#ifndef " + p[ 2 ], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "#ifndef " + p[ 2 ]
+
+    def p_control_line_8d( p ):
+        '''control_line : PPELIF constant_expression'''
+        print_output( p.lexer.s_write_output, "#elif " + p[ 2 ], filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "#elif " + p[ 2 ]
+
+    def p_control_line_8e( p ):
+        '''control_line : PPELSE'''
+        print_output( p.lexer.s_write_output, "#else", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "#else"
+
+    def p_control_line_8f( p ):
+        '''control_line : ENDIF'''
+        print_output( p.lexer.s_write_output, "#endif", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "#endif"
+
+    def p_constant_expression_1( p ):
+        '''constant_expression : constant_expression LOR constant_expression'''
+        p[ 0 ] = p[ 1 ] + " || " + p[ 3 ]
+
+    def p_constant_expression_2( p ):
+        '''constant_expression : constant_expression LAND constant_expression'''
+        p[ 0 ] = p[ 1 ] + " && " + p[ 3 ]
+
+    def p_constant_expression_3( p ):
+        '''constant_expression : LNOT constant_expression'''
+        p[ 0 ] = "!" + p[ 2 ]
+
+    def p_constant_expression_4( p ):
+        '''constant_expression : DEFINED LPAREN constant_expression RPAREN'''
+        p[ 0 ] = "defined( " + p[ 3 ] + " )"
+
+    def p_constant_expression_5( p ):
+        '''constant_expression : DEFINED IDENTIFIER'''
+        p[ 0 ] = "defined " + p[ 2 ]
+
+    def p_constant_expression_6( p ):
+        '''constant_expression : ICONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_constant_expression_7( p ):
+        '''constant_expression : IDENTIFIER'''
+        p[ 0 ] = p[ 1 ]
+
+    #def p_token_string_1( p ):
+        '''token_string : token_string IDENTIFIER'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_token_string_2( p ):
+        '''token_string : IDENTIFIER'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_token_string_3( p ):
+        '''token_string : ICONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_token_string_4( p ):
+        '''token_string : FCONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_token_string_4a( p ):
+        '''token_string : HCONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_identifier_list_1( p ):
+        '''identifier_list : IDENTIFIER'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_identifier_list_2( p ):
+        '''identifier_list : COMMA IDENTIFIER'''
+        p[ 0 ] = p[ 1 ] + ", " + p[ 3 ]
+
+    def p_statement_1(p):
+        '''statement : CONST elementtype IDENTIFIER EQUALS definebody SEMI'''
+        parser_create_constant( p[ 3 ], p[ 2 ], p[ 5 ] )
+        if p.lexer.s_write_output == True:
+            typename = parser_get_type_name( p[ 2 ] )
+            print_output( p.lexer.s_write_output, "const " + typename + " " + p[ 3 ] + " = " + p[ 5 ] + ";", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "const " + p[ 2 ] + " " + p[ 3 ] + " = " + p[ 5 ] + ";"
+
+    def p_statement_2(p):
+        '''statement : TYPEDEF elementtype IDENTIFIER array SEMI'''
+        dims = ""
+        if p[ 4 ] is not None:
+            for i in p[ 4 ]:
+                dims += "[ " + i + " ]"
+        parser_create_user_typedef( p[ 3 ], p[ 2 ], p[ 4 ] )
+        typename = parser_get_type_name( p[ 2 ] )
+        print_output( p.lexer.s_write_output, "typedef " + typename + " " + p[ 3 ] + dims + ";", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "typedef " + p[ 2 ] + " " + p[ 3 ] + dims + ";"
+
+    # is_number - support functionto determine if the given text represents a number
+    def is_number( text ):
+        rval = None
+        try:
+            r = float( text )
+            if not math.isinf( r ):
+                rval = r
+        except:
+            pass
+
+        if rval is None:
+            try:
+                r = eval( text )
+                rval = r
+            except:
+                pass
+
+        if rval is None:
+            t1 = re.sub( '(([uU][lL])|([lL][uU])|[lL]|[uU])$', '', text )
+            try:
+                r = eval( t1 )
+                rval = r
+            except:
+                pass
+
+        if rval is not None:
+            if (not bool( re.search( "[.eE]", text ) ) ) and (rval == int( rval ) ):
+                rval = int( rval )
+
+        return rval
+
+    # evaluate - evaluate the given text to get the resulting value - usually used when calculating array dimensions.
+    def evaluate( text ):
+        value = is_number( text )
+        if (value is None) and (text in EvaluatedConstants):
+            value = EvaluatedConstants[ text ]
+
+        if value is None:
+            found = False
+
+            if text in Constants:
+                found = True
+                value = evaluate_string( Constants[ text ].value )
+
+            if not found:
+                if text in MacroTypes:
+                    found = True
+                    value = evaluate_string( MacroTypes[ text ].value )
+
+            if not found:
+                for e in EnumerationTypes:
+                    index = 0
+                    for i in EnumerationTypes[ e ].values:
+                        if i.value is not None:
+                            index = evaluate_string( i.value )
+                        if text == i.name:
+                            found = True
+                            value = index
+                            break
+                        index += 1
+                    if found:
+                        break
+            if found:
+                EvaluatedConstants[ text ] =  value
+            else:
+                #print( "Evaluating %s, couldn't resolve value." % text, file = sys.stderr )
+                if False:
+                    print( "Basic Types:" )
+                    for i in BasicTypes:
+                        print( "\t" + BasicTypes[ i ].name  )
+                    print( "Enumeration Types:" )
+                    for i in EnumerationTypes:
+                        print( "\t" + EnumerationTypes[ i ].name  )
+                    print( "User Defined Types:" )
+                    for i in UserDefinedTypes:
+                        print( "\t" + UserDefinedTypes[ i ].name  )
+                    print( "Typedef Types:" )
+                    for i in Typedefs:
+                        print( "\t" + Typedefs[ i ].name  )
+                    print( "Macros Definitions:" )
+                    for i in MacroTypes:
+                        print( "\t" + MacroTypes[ i ].name  )
+        return value
+
+    # evaluate_string - evaluates the given text string by breaking it up into 'tokens' and evaluating each token.
+    #   then it "evaluates" the result to determine the final value the text represents.
+    def evaluate_string( text ):
+        r = is_number( text )
+        if r is None:
+            r = float( 'nan' )
+            tempText = text
+            items = re.split( "[()!~*%&|/ \t+-]+", tempText )
+            for j in items:
+                if j != '':
+                    jn = is_number( j )
+                    if jn is None:
+                        tmpresult = evaluate( j )
+                    else:
+                        tmpresult = jn
+                    if tmpresult is not None:
+                        tempText = tempText.replace( j, str( tmpresult ) )
+
+            # now correct for python vs. C/C++
+            tempText = tempText.replace( "&&", "and" )
+            tempText = tempText.replace( "&&", "or" )
+            tempText = tempText.replace( "!", "not" )
+            sizeofMatchObject = re.search( r"sizeof\([^)]+\)", tempText )
+            if sizeofMatchObject is not None:
+                sizeofText = sizeofMatchObject.string[ sizeofMatchObject.start() : sizeofMatchObject.end() ]
+                id = sizeofText.split()[ 1 ]
+                ti = parser_get_type_info( id )
+                if ti is not None:
+                    tempText = tempText.replace( sizeofText, str( ti.bytes ) )
+            try:
+                r = eval( tempText )
+                if r == int( r ):
+                    r = int( r )
+            except:
+                r = float( 'nan' )
+        return r
+
+    def p_statement_3(p):
+        '''statement : STRUCT IDENTIFIER LBRACE structbody RBRACE SEMI'''
+        fieldlist = p[ 4 ]
+        total_size_in_bytes = 0
+        required_alignment = fieldlist[ 0 ].alignment
+        members = ""
+        field_iterator = "\ttemplate < class FieldIterator >\n\tinline void iterateFields( FieldIterator &fi )\n\t{\n"
+        swap_code = "void " +  p[ 2 ] + "::Swap()\n{\n"
+        current_offset = 0
+        current_member_size = 0
+        current_member_required_alignment = 0
+
+        for i in p[ 4 ]:
+            typename = parser_get_type_name( i.type )
+            current_member_size = parser_get_type_info( i.type ).bytes
+            if isinstance( current_member_size, str ):
+                current_member_size = int( current_member_size )
+            current_member_required_alignment = parser_get_type_info( i.type  ).alignment
+            if (current_offset % current_member_required_alignment) != 0:
+                print( p.lexer.s_path + " : " + str( p.lexer.lineno ) + " : error: incorrect alignment for [" + i.name + "] in: " + p[ 2 ], file = sys.stderr )
+                print( "\tCurrent Offset: " + str( current_offset ), file = sys.stderr )
+                print( "\tRequired Alignment: " + str( current_member_required_alignment ), file = sys.stderr )
+                print( "\tNeed to add " + str( current_offset % current_member_required_alignment ) + " bytes of padding before this member variable.", file = sys.stderr )
+                raise SyntaxError
+            dims = ""
+            dimension_total = 1
+            if i.dimensions is not None:
+                index = 0
+                for j in i.dimensions:
+                    d = evaluate_string( j )
+                    if d is None:
+                        print( "%s: %d: warning: Unable to evaluate dimensions for " + i.Name + " assuming 1" % ( p.lexer.s_path, p.lexer.lineno ), file = sys.stderr )
+                        d = 1
+                    dimension_total *= d
+                    index += 1
+                    indent = '\t' * index
+                    dims += "[ " + j + " ]"
+                    varname = "i" + str( index )
+                    swap_code += indent + "for ( uint32_t " + varname + " = 0; " + varname + " < " + j + "; ++" + varname + ")\n" + indent + "{\n"
+                    if index == len( i.dimensions ):
+                        if parser_is_basetype( i.type ):
+                            swap_code += indent + "\tEndianSwap( &" + i.name
+                            for k in range( 1, index + 1 ):
+                                swap_code += "[ i" + str( k ) + " ]"
+                            swap_code += ", sizeof( " + typename + " ) );\n"
+                            for k in range( 1, index + 1 ):
+                                swap_code += "\t" * (index + 1 - k) + "}\n"
+                        else:
+                            swap_code += indent + "\t" + i.name
+                            for k in range( 1, index + 1 ):
+                                swap_code += "[ i" + str( k ) + " ]"
+                            swap_code += ".Swap();\n"
+                            for k in range( 1, index + 1 ):
+                                swap_code += "\t" * (index + 1 - k) + "}\n"
+            else:
+                if parser_is_basetype( i.type ):
+                    swap_code += "\tEndianSwap( &" + i.name + ", sizeof( " + typename + " ) );\n"
+                else:
+                    swap_code += "\t" + i.name + ".Swap();\n"
+            current_offset += (current_member_size * dimension_total)
+            members += "\t"+ typename + " " + i.name + dims + ";\n"
+            field_iterator += "\t\tfi( " + i.name + ", \"" + i.name + "\" );\n"
+
+        total_size_in_bytes = current_offset
+
+        parser_create_user_defined_type( p[ 6 ], p[ 4 ], total_size_in_bytes, required_alignment )
+        parser_create_user_typedef( p[ 6 ], "anonymous_type_" + p[ 6 ], None )
+        swap_code += "}"
+        field_iterator += "\t}\n"
+
+        constructor = "\t//inline " + p[ 3 ] + "() { memset( this, 0, sizeof( *this ) ); }\n"
+        typename_fun = "\tstatic inline const char *type_name() { return \"" + p[ 3 ] + "\"; }\n"
+        if parser_constant_exists( p[ 6 ] + "_MSG_ID" ):
+            subject_fun =  "\tstatic inline uint32_t subject() { return " + p[ 3 ] + "_MSG_ID; }\n"
+        else:
+            subject_fun = ""
+        special_fun = "\tstatic inline uint32_t isSpecialMessage() { return " + p[ 3 ] + "_Special; }\n"
+        datapump_fun = "\tstatic inline uint32_t datapumpBit() { return " + p[ 3 ] + "_Datapump; }\n"
+        swap_fun = "\tvoid Swap();\n"
+        special_data = "const uint32_t " + p[ 3 ] + "_Special = " + str( getSpecialMessage(  p[ 3 ] ) ) + ";"
+        datapump_data = "const uint32_t " + p[ 3 ] + "_Datapump = " + str( getDataPumpBits(  p[ 3 ] ) ) + ";"
+        print_output( p.lexer.s_write_output, special_data )
+        print_output( p.lexer.s_write_output, datapump_data )
+        print_output( p.lexer.s_write_output, "typedef struct " + p[ 3 ] +"\n{\n" + 
+                     constructor + typename_fun + subject_fun + special_fun + datapump_fun + members + swap_fun + field_iterator + "};\n", 
+                     filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        print_output( p.lexer.s_write_output, "", swap_code )
+        p[ 0 ] = "typedef struct " + p[ 3 ] +"\n{\n" + constructor + typename_fun + subject_fun + special_fun + datapump_fun + members + swap_fun + field_iterator + "};\n"
+
+    def p_statement_5(p):
+        '''statement : TYPEDEF STRUCT LBRACE structbody RBRACE IDENTIFIER SEMI'''
+        fieldlist = p[ 4 ]
+        total_size_in_bytes = 0
+        required_alignment = fieldlist[ 0 ].alignment
+        members = ""
+        field_iterator = "\ttemplate < class FieldIterator >\n\tinline void iterateFields( FieldIterator &fi )\n\t{\n"
+        swap_code = "void " +  p[ 6 ] + "::Swap()\n{\n"
+        current_offset = 0
+        current_member_size = 0
+        current_member_required_alignment = 0
+
+        for i in p[ 4 ]:
+            typename = parser_get_type_name( i.type )
+            current_member_size = parser_get_type_info( i.type ).bytes
+            if isinstance( current_member_size, str ):
+                current_member_size = int( current_member_size )
+            current_member_required_alignment = parser_get_type_info( i.type  ).alignment
+            if (current_offset % current_member_required_alignment) != 0:
+                print( p.lexer.s_path + " : " + str( p.lexer.lineno ) + " : error: incorrect alignment for [" + i.name + "] in: " + p[ 6 ], file = sys.stderr )
+                print( "\tCurrent Offset: " + str( current_offset ), file = sys.stderr )
+                print( "\tRequired Alignment: " + str( current_member_required_alignment ), file = sys.stderr )
+                print( "\tNeed to add " + str( current_offset % current_member_required_alignment ) + " bytes of padding before this member variable.", file = sys.stderr )
+                raise SyntaxError
+            dims = ""
+            dimension_total = 1
+            if i.dimensions is not None:
+                index = 0
+                for j in i.dimensions:
+                    d = evaluate_string( j )
+                    if d is None:
+                        print( "%s: %d: warning: Unable to evaluate dimensions for " + i.Name + " assuming 1" % ( p.lexer.s_path, p.lexer.lineno ), file = sys.stderr )
+                        d = 1
+                    dimension_total *= d
+                    index += 1
+                    indent = '\t' * index
+                    dims += "[ " + j + " ]"
+                    varname = "i" + str( index )
+                    swap_code += indent + "for ( uint32_t " + varname + " = 0; " + varname + " < " + j + "; ++" + varname + ")\n" + indent + "{\n"
+                    if index == len( i.dimensions ):
+                        if parser_is_basetype( i.type ):
+                            swap_code += indent + "\tEndianSwap( &" + i.name
+                            for k in range( 1, index + 1 ):
+                                swap_code += "[ i" + str( k ) + " ]"
+                            swap_code += ", sizeof( " + typename + " ) );\n"
+                            for k in range( 1, index + 1 ):
+                                swap_code += "\t" * (index + 1 - k) + "}\n"
+                        else:
+                            swap_code += indent + "\t" + i.name
+                            for k in range( 1, index + 1 ):
+                                swap_code += "[ i" + str( k ) + " ]"
+                            swap_code += ".Swap();\n"
+                            for k in range( 1, index + 1 ):
+                                swap_code += "\t" * (index + 1 - k) + "}\n"
+            else:
+                if parser_is_basetype( i.type ):
+                    swap_code += "\tEndianSwap( &" + i.name + ", sizeof( " + typename + " ) );\n"
+                else:
+                    swap_code += "\t" + i.name + ".Swap();\n"
+            current_offset += (current_member_size * dimension_total)
+            members += "\t"+ typename + " " + i.name + dims + ";\n"
+            field_iterator += "\t\tfi( " + i.name + ", \"" + i.name + "\" );\n"
+
+        total_size_in_bytes = current_offset
+
+        parser_create_user_defined_type( p[ 6 ], p[ 4 ], total_size_in_bytes, required_alignment )
+        parser_create_user_typedef( p[ 6 ], "anonymous_type_" + p[ 6 ], None )
+        swap_code += "}"
+        field_iterator += "\t}\n"
+
+        constructor = "\t//inline " + p[ 6 ] + "() { memset( this, 0, sizeof( *this ) );}\n"
+        typename_fun = "\tstatic inline const char *type_name() { return \"" + p[ 6 ] + "\"; }\n"
+        if parser_constant_exists( p[ 6 ] + "_MSG_ID" ):
+            subject_fun =  "\tstatic inline uint32_t subject() { return " + p[ 6 ] + "_MSG_ID; }\n"
+        else:
+            subject_fun = ""
+        special_fun = "\tstatic inline uint32_t isSpecialMessage() { return " + p[ 6 ] + "_Special; }\n"
+        datapump_fun = "\tstatic inline uint32_t datapumpBit() { return " + p[ 6 ] + "_Datapump; }\n"
+        swap_fun = "\tvoid Swap();\n"
+        special_data = "const uint32_t " + p[ 6 ] + "_Special = " + str( getSpecialMessage(  p[ 6 ] ) ) + ";"
+        datapump_data = "const uint32_t " + p[ 6 ] + "_Datapump = " + str( getDataPumpBits(  p[ 6 ] ) ) + ";"
+        print_output( p.lexer.s_write_output, special_data )
+        print_output( p.lexer.s_write_output, datapump_data )
+        print_output( p.lexer.s_write_output, "typedef struct\n{\n" + constructor + typename_fun + subject_fun + special_fun + datapump_fun +  members + swap_fun + field_iterator + "} " + p[ 6 ] + ";\n", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        print_output( p.lexer.s_write_output, "", swap_code )
+        p[ 0 ] = "typedef struct\n{\n" + constructor + typename_fun + subject_fun + special_fun + datapump_fun + members + swap_fun + field_iterator + "} " + p[ 6 ] + ";\n"
+
+    def p_statement_6(p):
+        '''statement : ENUM IDENTIFIER LBRACE enumbody RBRACE SEMI'''
+        enumbody = p[ 4 ]
+        members = ""
+        enum_value_list = []
+        for i in enumbody:
+            enum_value_list.append( parser_create_enumeration_value_type( i [ 0 ], i[ 1 ] ) )
+            if i[ 1 ] is not None:
+                members += "\t"+ i[ 0 ] + " = " + i[ 1 ]
+            else:
+                members += "\t"+ i[ 0 ]
+            if (i != enumbody[ len( enumbody ) - 1 ] ):
+                members += ","
+            members += "\n"
+        parser_create_enumeration_type( p[ 2 ], enum_value_list )
+        print_output( p.lexer.s_write_output, "enum " + p[ 2 ] + "\n{\n" + members + "};", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "enum " + p[ 2 ] + "\n{\n" + members + "};"
+
+    def p_statement_7(p):
+        '''statement : TYPEDEF ENUM IDENTIFIER LBRACE enumbody RBRACE SEMI'''
+        enumbody = p[ 5 ]
+        members = ""
+        enum_value_list = []
+        for i in enumbody:
+            enum_value_list.append( parser_create_enumeration_value_type( i [ 0 ], i[ 1 ] ) )
+            if i[ 1 ] is not None:
+                members += "\t"+ i[ 0 ] + " = " + i[ 1 ]
+            else:
+                members += "\t"+ i[ 0 ]
+            if (i != enumbody[ len( enumbody ) - 1 ] ):
+                members += ","
+            members += "\n"
+        parser_create_enumeration_type( "anonymous_type_" + p[ 3 ], enum_value_list )
+        parser_create_user_typedef( p[ 3 ], "anonymous_type_" + p[ 3 ], None )
+        print_output( p.lexer.s_write_output, "typedef enum " + p[ 3 ] + "\n{\n" + members + "};", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "typedef enum " + p[ 3 ] + "\n{\n" + members + "};"
+
+    def p_statement_8(p):
+        '''statement : TYPEDEF ENUM LBRACE enumbody RBRACE IDENTIFIER SEMI'''
+        enumbody = p[ 4 ]
+        members = ""
+        enum_value_list = []
+        for i in enumbody:
+            enum_value_list.append( parser_create_enumeration_value_type( i [ 0 ], i[ 1 ] ) )
+            if i[ 1 ] is not None:
+                members += "\t"+ i[ 0 ] + " = " + i[ 1 ]
+            else:
+                members += "\t"+ i[ 0 ]
+            if (i != enumbody[ len( enumbody ) - 1 ] ):
+                members += ","
+            members += "\n"
+        parser_create_enumeration_type( "anonymous_type_" + p[ 6 ], enum_value_list )
+        parser_create_user_typedef( p[ 6 ], "anonymous_type_" + p[ 6 ], None )
+        print_output( p.lexer.s_write_output, "typedef enum " + "\n{\n" + members + "} " + p[ 6 ] + ";", filename = p.lexer.s_path, lineno = p.lexer.lineno )
+        p[ 0 ] = "typedef enum " + p[ 6 ] + "\n{\n" + members + "} " + p[ 6 ] + ";"
+
+    def p_intrinsic_type_1( p ):
+        '''elementtype : SHORT'''
+        t = p[ 1 ]
+        p[ 0 ] = "short"
+
+    def p_intrinsic_type_2( p ):
+        '''elementtype : UNSIGNED SHORT'''
+        t = p[ 1 ] + " " + p[ 2 ]
+        p[ 0 ] = "unsigned short"
+
+    def p_intrinsic_type_3( p ):
+        '''elementtype : LONG'''
+        t = p[ 1 ]
+        p[ 0 ] = "long"
+
+    def p_intrinsic_type_4( p ):
+        '''elementtype : UNSIGNED LONG'''
+        t = p[ 1 ] + " " + p[ 2 ]
+        p[ 0 ] = "unsigned long"
+
+    def p_intrinsic_type_5( p ):
+        '''elementtype : LONG LONG'''
+        t = p[ 1 ] + " " + p[ 2 ]
+        p[ 0 ] = "long long"
+
+    def p_intrinsic_type_6( p ):
+        '''elementtype : UNSIGNED LONG LONG'''
+        t = p[ 1 ] + " " + p[ 2 ] + " " + p[ 3 ]
+        p[ 0 ] = "unsigned long long"
+
+    def p_intrinsic_type_7( p ):
+        '''elementtype : FLOAT'''
+        t = p[ 1 ]
+        p[ 0 ] = "float"
+
+    def p_intrinsic_type_8( p ):
+        '''elementtype : DOUBLE'''
+        t = p[ 1 ]
+        p[ 0 ] = "double"
+
+    def p_intrinsic_type_9( p ):
+        '''elementtype : LONG DOUBLE'''
+        t = p[ 1 ] + " " + p[ 2 ]
+        p[ 0 ] = "long double"
+
+    def p_intrinsic_type_10( p ):
+        '''elementtype : CHAR'''
+        t = p[ 1 ]
+        p[ 0 ] = "char"
+
+    def p_intrinsic_type_11( p ):
+        '''elementtype : BOOLEAN'''
+        t = p[ 1 ]
+        p[ 0 ] = "boolean"
+
+    def p_intrinsic_type_12( p ):
+        '''elementtype : OCTET'''
+        t = p[ 1 ]
+        p[ 0 ] = "octet"
+
+    def p_user_type( p ):
+        '''elementtype : IDENTIFIER'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_definebody_3(p):
+        '''definebody : expr'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_structbody_1(p):
+        '''structbody : '''
+        p[ 0 ] = []
+
+    def p_structbody_3(p):
+        '''structbody : structbody elementtype IDENTIFIER array SEMI '''
+        body = p[ 1 ]
+        type_info = parser_get_type_info( p[ 2 ], p.lineno )
+        if type_info is not None:
+            body.append( FieldType(  p[ 3 ], p[ 2 ], p[ 4 ], type_info.bytes, type_info.alignment ) )
+            p[ 0 ] = body
+        else:
+            print( p.lexer.s_path + " : " + str( p.lexer.lineno ) + " : error: Undefined type: " + p[ 2 ], file = sys.stderr )
+            raise SyntaxError
+
+    # NOT SUPPORTING BITFIELDS
+    def p_structbody_4(p):
+        '''structbody : structbody elementtype IDENTIFIER COLON expr SEMI'''
+        print( "%s:%d: Syntax error: member field %s, Bitfields are NOT supported within message definitions." % (p.lexer.s_path, p.lineno(4), p[3] ), file = sys.stderr )
+        raise SyntaxError
+
+    def p_notemptyarray_1(p):
+        '''array : array LBRACKET expr RBRACKET '''
+        if p[ 1 ] is None:
+            p[ 0 ] = []
+        else:
+            p[ 0 ] = p[ 1 ]
+        p[ 0 ].append( p[ 3 ] )
+
+    def p_array_1(p):
+        '''array : '''
+        p[ 0 ] = None
+
+    def p_enumbody_1(p):
+        '''enumbody : IDENTIFIER enumvaluedef'''
+        p[ 0 ] = [ ( p[ 1 ], p[ 2 ] ) ]
+
+    def p_enumbody_5(p):
+        '''enumbody : enumbody COMMA IDENTIFIER enumvaluedef'''
+        if p[ 1 ] is None:
+            enumbody = []
+        else:
+            enumbody = p[ 1 ]
+        enumbody.append( ( p[ 3 ], p[ 4 ] ) )
+        p[ 0 ] = enumbody
+
+    def p_enumvaluedef_1(p):
+        '''enumvaluedef : EQUALS expr'''
+        p[ 0 ] = p[ 2 ]
+
+    def p_enumvaluedef_2(p):
+        '''enumvaluedef : '''
+        p[ 0 ] = None
+
+    def p_expr_1a(p):
+        '''expr : ICONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_expr_1b(p):
+        '''expr : FCONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_expr_1c(p):
+        '''expr : HCONST'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_expr_2(p):
+        '''expr : IDENTIFIER'''
+        p[ 0 ] = p[ 1 ]
+
+    def p_expr_3(p):
+        '''expr : expr PLUS expr'''
+        p[ 0 ] = p[ 1 ] + " + " + p[ 3 ]
+
+    def p_expr_4(p):
+        '''expr : expr MINUS expr'''
+        p[ 0 ] = p[ 1 ] + " - " + p[ 3 ]
+
+    def p_expr_5(p):
+        '''expr : expr MOD expr'''
+        p[ 0 ] = p[ 1 ] + " % " + p[ 3 ]
+
+    def p_expr_6(p):
+        '''expr : expr TIMES expr'''
+        p[ 0 ] = p[ 1 ] + " * " + p[ 3 ]
+
+    def p_expr_7(p):
+        '''expr : MINUS expr %prec UMINUS'''
+        p[ 0 ] = " -" + p[ 2 ]
+
+    def p_expr_8(p):
+        '''expr : expr DIVIDE expr'''
+        p[ 0 ] = p[ 1 ] + " / " + p[ 3 ]
+
+    def p_expr_9(p):
+        '''expr : LPAREN expr RPAREN '''
+        p[ 0 ] = "(" + p[ 2 ] + ")"
+
+    def p_expr_10(p):
+        '''expr : SIZEOF LPAREN IDENTIFIER RPAREN'''
+        t = parser_get_type_info( p[ 3 ] )
+        if t is None:
+            p_error( p )
+        p[ 0 ] = "sizeof( " + p[ 3 ] + " )"
+
+    def p_expr_11(p):
+        '''expr : expr LAND expr'''
+        p[ 0 ] = p[ 1 ] + " && " + p[ 3 ]
+
+    def p_expr_12(p):
+        '''expr : expr LOR expr'''
+        p[ 0 ] = p[ 1 ] + " || " + p[ 3 ]
+
+    def p_expr_13(p):
+        '''expr : expr AND expr'''
+        p[ 0 ] = p[ 1 ] + " & " + p[ 3 ]
+
+    def p_expr_14(p):
+        '''expr : expr OR expr'''
+        p[ 0 ] = p[ 1 ] + " | " + p[ 3 ]
+
+    def p_expr_15(p):
+        '''expr : expr XOR expr'''
+        p[ 0 ] = p[ 1 ] + " ^ " + p[ 3 ]
+
+    def p_expr_16(p):
+        '''expr : expr EQ expr'''
+        p[ 0 ] = p[ 1 ] + " == " + p[ 3 ]
+
+    def p_expr_17(p):
+        '''expr : expr NE expr'''
+        p[ 0 ] = p[ 1 ] + " != " + p[ 3 ]
+
+    def p_expr_18(p):
+        '''expr : expr LSHIFT expr'''
+        p[ 0 ] = p[ 1 ] + " << " + p[ 3 ]
+
+    def p_expr_19(p):
+        '''expr : expr RSHIFT expr'''
+        p[ 0 ] = p[ 1 ] + " >> " + p[ 3 ]
+
+    def p_expr_20(p):
+        '''expr : expr LT expr'''
+        p[ 0 ] = p[ 1 ] + " < " + p[ 3 ]
+
+    def p_expr_21(p):
+        '''expr : expr GT expr'''
+        p[ 0 ] = p[ 1 ] + " > " + p[ 3 ]
+
+    def p_expr_22(p):
+        '''expr : NOT expr'''
+        p[ 0 ] = "~" + p[ 2 ]
+
+    def p_expr_23(p):
+        '''expr : expr LE expr'''
+        p[ 0 ] = p[ 1 ] + " <= " + p[ 3 ]
+
+    def p_expr_24(p):
+        '''expr : expr GE expr'''
+        p[ 0 ] = p[ 1 ] + " >= " + p[ 3 ]
+
+    # p_error - Error rule for syntax errors - let's do our "best" to give the user an indication of where and hopefully what
+    #   the error is.
+    def p_error(p):
+        global errorFound
+        errorFound = True
+        if p is not None:
+            print( p.lexer.s_path + " : " + str( p.lexer.lineno ) + " : error: Syntax error in input!", p, file = sys.stderr )
+            if p.type == 'CHAR':
+                print( "\tDid you use the invalid type 'unsigned char'?", file = sys.stderr )
+            elif p.type == 'COLON':
+                print( "\tDid you try to define a bitfield as part of a message?  Not valid as part of a message.", file = sys.stderr )
+            else:
+                print( "\tAre you missing a ';' somewhere above?", file = sys.stderr )
+        else:
+            print( "error: Syntax error in input: ", p, file = sys.stderr )
+            print( "\tAre you missing a ';' somewhere above?", file = sys.stderr )
+
+    ####################
+    # Support functions
+    ####################
+
+    # define some "types" for holding information about the IDL source being transpiled.
+    from collections import namedtuple
+    ConstantType = namedtuple( 'ConstantType', [ 'name', 'type', 'value' ] )
+    BasicType = namedtuple( 'BasicType', [ 'name', 'cpp', 'bytes', 'alignment' ] )
+    EnumerationValueType = namedtuple( 'EnumerationValueType', [ 'name', 'value' ] )
+    EnumerationType = namedtuple( 'EnumerationType', [ 'name', 'values', 'bytes', 'alignment' ] )
+    FieldType = namedtuple( 'name', [ 'name', 'type', 'dimensions', 'bytes', 'alignment' ] )
+    UserDefinedType = namedtuple( 'UserDefinedType', [ 'name', 'fieldlist', 'bytes', 'alignment' ] )
+    UserTypeDef = namedtuple( 'UserTypeDef', [ 'name', 'type', 'dimensions' ] )
+    TypeInfo = namedtuple( 'TypeInfo', [ 'bytes', 'alignment'] )
+    MacroType = namedtuple( 'MacroType', [ 'name', 'parameters', 'value' ] )
+
+    # and some collections to hold the data
+    Constants = {}
+    BasicTypes = {}
+    EnumerationTypes = {}
+    UserDefinedTypes = {}
+    Typedefs = {}
+    MacroTypes = {}
+    EvaluatedConstants = {}
+
+    # define some functions for creating the types above
+    def parser_create_macro( name, parameters, value ):
+        if not name in MacroTypes:
+            M = MacroType( name, parameters, value )
+            MacroTypes[  name ] = M
+            return True
+        else:
+            return False
+
+    def parser_macro_defined( name ):
+        return name in MacroTypes
+
+    def parser_macro_value( name ):
+        if parser_macro_defined( name ):
+            return MacroTypes[ name ]
+        else:
+            # Note: can't tell difference between "not defined" and "defined with no value", must check if defined
+            # hence the parser_macro_defined() function
+            return None
+
+    def parser_create_constant( name, typename, value ):
+        if not name in Constants:
+            C = ConstantType( name, typename, value )
+            Constants[ name ] = C
+           #print( "Created constant [" + name + "]" )
+            return True
+        else:
+            return False
+
+    def parser_constant_exists( name ):
+        return name in Constants
+
+    def parser_create_basic_type( name, cpp, size_in_bytes, byte_alignment ):
+        if not name in BasicTypes:
+            E = BasicType( name, cpp, size_in_bytes, byte_alignment )
+            BasicTypes[ name ] = E
+            #print( "Created basic type [" + name + "]\t", E )
+            return True
+        else:
+            return False
+
+    def parser_create_enumeration_value_type( name, value ):
+            return EnumerationValueType( name, value )
+
+    def parser_create_enumeration_type( name, values ):
+        if not name in EnumerationTypes:
+            E = EnumerationType( name, values, 4, 4 )
+            EnumerationTypes[ name ] = E
+            #print( "Created enumeration type [" + name + "]" )
+            return True
+        else:
+            return False
+
+    def parser_create_field_type( name, type, dimensions, size_in_bytes, byte_alignment ):
+            return FieldType( name, type, dimensions, size_in_bytes, byte_alignment )
+
+    def parser_create_user_defined_type( name, fieldlist, size_in_bytes, byte_alignment ):
+        if not name in UserDefinedTypes:
+            U = UserDefinedType( name, fieldlist, size_in_bytes, byte_alignment )
+            UserDefinedTypes[  name ] =  U
+            #print( "Created user Defined Type: " + name + "\tSize: " + str( size_in_bytes ) )
+            return True
+        else:
+            return False
+
+    def parser_create_user_typedef( name, type, dimensions ):
+        if not name in Typedefs:
+            T = UserTypeDef( name, type, dimensions )
+            Typedefs[ name ] = T
+            return True
+        else:
+            return False
+
+    # determine the total number items that will declared based on the various dimensions defined
+    # used as part of checking alignment.
+    def parser_count_items_in_dimensions( dims, lineno = 0 ):
+        count = 1
+        if dims is None:
+            return count
+        for d in reversed( dims ):
+            if d.isdigit():
+                count *= int( d )
+            else:
+                if d in Constants:
+                    v = Constants[ d ]
+                    count *= v.value
+                else:
+                    print( s_path + " : " + str( lineno ) + " : Error: Unknown value( " + d + " ) used for array dimension", file = sys.stderr )
+        return count
+
+    # determine if the type 't' is a basic type - if not, it must be user-defined
+    def parser_is_basetype( t ):
+        if t in BasicTypes:
+            return True
+        if t in EnumerationTypes:
+            return True
+        if t in UserDefinedTypes:
+            return False
+        if t in Typedefs:
+            return parser_is_basetype( Typedefs[ t ].type )
+        # shouldn't need to do this for Constants or Macros
+        return False
+
+    # get information of the type 't'
+    def parser_get_type_info( t, lineno = 0 ):
+        #print( "Searching for [" + t + "]" )
+        if t in BasicTypes:
+            return TypeInfo( BasicTypes[ t ].bytes, BasicTypes[ t ].alignment )
+        if t in EnumerationTypes:
+            # ALL enumerations are unsigned 32-Bits, i.e. "long"
+            return TypeInfo( BasicTypes[ 'long' ].bytes, BasicTypes[ 'long' ].alignment )
+        if t in UserDefinedTypes:
+            return TypeInfo( UserDefinedTypes[ t ].bytes, UserDefinedTypes[ t ].alignment )
+        if t in Typedefs:
+            Tdef = Typedefs[ t ]
+            TI = parser_get_type_info( Tdef.type, lineno )
+            return TypeInfo( TI.bytes * parser_count_items_in_dimensions( Tdef.dimensions, lineno ), TI.alignment )
+        if t in Constants:
+            # need to figure out what type of value it is
+            return parser_get_type_info( Constants[ t ].type )
+        if t in MacroTypes:
+            # need to figure out what type of value it is
+            x = evaluate_string( MacroTypes[ t ].value )
+            if isinstance( x, float ):
+                return TypeInfo( BasicTypes[ 'double' ].bytes, BasicTypes[ 'double' ].alignment )
+            elif isinstance( x, bool ):
+                return TypeInfo( BasicTypes[ 'boolean' ].bytes, BasicTypes[ 'boolean' ].alignment )
+            elif isinstance( x, int ):
+                if x >= -(2**32 - 1) and x <= (2**(32-1) - 1):
+                    return TypeInfo( BasicTypes[ 'long' ].bytes, BasicTypes[ 'long' ].alignment )
+                else:
+                    return TypeInfo( BasicTypes[ 'long long' ].bytes, BasicTypes[ 'long long' ].alignment )
+            else:
+                return None
+        return None
+
+    # get the C++ type used for the IDL basic type
+    def parser_get_type_name( t ):
+        if t in BasicTypes:
+            return BasicTypes[ t ].cpp
+        else:
+            return t
+
+    # initialize the parser - i.e. define basic types accepted by the transpiler
+    def parser_init():
+        # Notes:
+        # 1. 'long double' is treated as double since
+        # not all compileter/operating systems C/C++ compilers
+        # agree on the length of a long double
+        # 2. no support for wchar, ansi only
+        # 3. boolean is coerced to be a single byte
+        parser_create_basic_type( "float", "float", 4, 4 )
+        parser_create_basic_type( "double", "double", 8, 8 )
+        parser_create_basic_type( "long double", "double", 8, 8 )
+        parser_create_basic_type( "short", "int16_t", 2, 2 )
+        parser_create_basic_type( "unsigned short", "uint16_t", 2, 2 )
+        parser_create_basic_type( "long", "int32_t", 4, 4 )
+        parser_create_basic_type( "unsigned long", "uint32_t", 4, 4 )
+        parser_create_basic_type( "long long", "int64_t", 8, 8 )
+        parser_create_basic_type( "unsigned long long", "uint64_t", 8, 8 )
+        parser_create_basic_type( "char", "uint8_t", 1, 1 )
+        parser_create_basic_type( "boolean", "uint8_t", 1, 1 )
+        parser_create_basic_type( "octet", "uint8_t", 1, 1 )
+
+    # input - this is where the lexing and parsing actually take place.
+    def input( text, path, searchpath, callstack ):
+        depth = len( callstack )
+        if depth == 1:
+            write_output = True
+        else:
+            write_output = False
+        s_path = path.replace( "\\\\", "/" ).replace( "\\", "/" )
+        s_searchpath = searchpath
+        s_callstack = callstack
+        lexer.s_path = s_path
+        lexer.s_searchpath = searchpath
+        lexer.s_callstack = callstack
+        lexer.s_write_output = write_output
+        #result = parser.parse( text, lexer=lexer, debug=True, tracking=True )
+        result = parser.parse( text, lexer=lexer, tracking=True )
+        if write_output:
+            guard = include_guard( re.sub( r"\.[iI][dD][lL]", ".h", os.path.basename( filename ) ) )
+            if not parser_macro_defined( guard ):
+                # do these in the opposite order you want them in the file
+                prepend_output( write_output, "#define " + guard )
+                prepend_output( write_output, "#ifndef " + guard )
+                print_output( write_output, "#endif" )
+        return ( result, Constants, BasicTypes, EnumerationTypes, UserDefinedTypes, Typedefs, MacroTypes )
+
+    # create the lexer and the parser for this instantiation of the transpiler.
+    #lexer = lex.lex( reflags = re.VERBOSE | re.MULTILINE, debug = True)
+    lexer = lex.lex( reflags = re.VERBOSE | re.MULTILINE )
+    parser = yacc.yacc()
+    parser_init()
+
+    return input
+
+# process_file - process the file by reading the file, creating a instance of the transpiler and passing the text to it.
+def process_file( filename, searchpath, callstack = [], lineno = 0 ):
+    global errorFound
+    depth = len( callstack )
+    if depth == 0:
+        tmp_write_output = True
+    else:
+        tmp_write_output = False
+
+    if not bool( re.search( r"\.[iI][dD][lL]$", filename ) ):
+        print( "Warning: ignoring include file '%s', only 'idl' files are supported as contributors to message definitions." % filename, file = sys.stderr )
+        errorFound = True
+        return ( -1, {}, {}, {}, {}, {}, {} )
+
+    path = None
+    if os.path.exists( filename ):
+        path = filename
+    else:
+        for i in searchpath:
+            i1 = re.sub( r"[\\\/]$", "", i )
+            tmpFilename = os.path.join( i1, filename )
+            if os.path.exists( tmpFilename ):
+                path = tmpFilename
+                break
+    if path is None:
+        if depth == 0:
+            print( "File: [" + filename + "] Does not exist, aborting.", file = sys.stderr )
+        else:
+            if len( callstack ) > 0:
+                n = len( callstack ) - 1
+                print( "File: " + callstack[ n ] + " : " + str( lineno ) + " : Error file[" + filename + "] not found!", file = sys.stderr )
+                if len( callstack ) > 1:
+                    print( "\tIncluded from: ", file = sys.stderr )
+                    for i in callstack[ 0 : n ]:
+                        print( "\t\t" + i, file = sys.stderr )
+        errorFound = True
+        return ( -1, {}, {}, {}, {}, {}, {} )
+    else:
+        path = path.replace( "\\", "/" )
+        tmp_transpiler = make_transpiler()
+        f = open( path, "r" )
+        t = ""
+        try:
+            t = f.read()
+        except:
+            f.close()
+            # try as utf-8
+            try:
+                f = open( path, "r", encoding='utf8' )
+            except:
+                f.close()
+                print("Exception thrown while reading: ", path, file = sys.stderr )
+                print( "\tCheck file for non-ANSI, non-UTF-8 characters (quotation marks are often the culprit)", file = sys.stderr )
+                traceback.print_exc()
+                return ( -1, {}, {}, {}, {}, {}, {} )
+        f.close()
+        if tmp_write_output:
+            base_path = re.sub( r"\.[iI][dD][lL]", "", path )
+            remove_output( base_path )
+            print_output( tmp_write_output, "// Generated file do not edit - see source at " + path, "// Generated file do not edit - see source at " + path )
+            print_output( tmp_write_output, "#include <stdint.h>\t// for standard types" )
+            print_output( tmp_write_output, "#include <string.h>\t// for memset" )
+            print_output( tmp_write_output, "#include \"EndianSwap.h\"\t// for EndianSwap routines" )
+        try:
+            r = tmp_transpiler( t.strip(), path, searchpath, callstack + [ path ] )
+            if errorFound:
+                r = ( -1, {}, {}, {}, {}, {}, {} )
+        except:
+            print( "Exception thrown while processing: ", path, file = sys.stderr )
+            traceback.print_exc()
+            errorFound = True
+            r = ( -1, {}, {}, {}, {}, {}, {} )
+        if tmp_write_output and not errorFound:
+            write_output_to_file( base_path )
+
+    return r
+
+# the "main" of this python script.  process and command line arguments and start processing of the single idl file 
+if __name__ == "__main__":
+    plypath = os.path.join( os.path.dirname( os.path.realpath( __file__ ) ), "ply-3.11" )
+    if os.path.isdir( plypath ):
+        sys.path.insert( 0, plypath )
+    else:
+        print( "error: ply-3.11 is not available at %s, aborting." % plypath, file = sys.stderr )
+        sys.exit( 1 )
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument( 'filename' )
+    parser.add_argument( '-i', '--include_path', help='add include path', action='append' )
+    parser.add_argument( '-s', '--special', help='path to special messages definition file' )
+    parser.add_argument( '-b', '--bit', help='path to bit definition file' )
+    parser.add_argument( '-o', '--outputdir', help='path to folder for output files' )
+
+    args = parser.parse_args()
+    filename = args.filename
+    if args.include_path is None:
+        include_paths = []
+    else:
+        include_paths = args.include_path
+    if args.special is None:
+        SpecialMessageNamesFilePath = os.path.join( os.path.dirname( os.path.realpath( __file__ ) ), "specialMessageList.txt" )
+    else:
+        SpecialMessageNamesFilePath = args.special
+    if args.bit is None:
+        BitFilePath = os.path.join( os.path.dirname( os.path.realpath( __file__ ) ), "datapumpBitList.txt" )
+    else:
+        BitFilePath = args.bit
+    if args.outputdir is not None:
+        if os.path.exists( args.outputdir ):
+            outputdir = args.outputdir
+        else:
+            print( "Error: Output directory [%s] does not exist, aborting!" % args.outputdir, file = sys.stderr )
+            sys.exit( -1 )
+
+    loadSpecialMessages()
+    loadDatapumpBits()
+    try:
+        r = process_file( filename, include_paths )
+        #print( "Result of transpiler: ",  r )
+        if (r[ 0 ] is None) or (r[ 0 ] != 0):
+            r = -2
+        else:
+            r = 0
+    except:
+        r = -1
+
+    if errorFound:
+        r = -1
+
+    sys.exit( r )
